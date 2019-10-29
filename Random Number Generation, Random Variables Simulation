@@ -1,0 +1,238 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+import pandas as pd
+
+'''1. Use the Random Number generators discussed in the class to do the following:'''
+'''(a) Using LGM method generate 10,000 Uniformly distributed random numbers on [0,1] 
+       and compute the empirical mean and the standard deviation of the sequence.'''
+
+m = 10000
+def Unif(n, seed):
+    a = 7**5; b = 0; m = 2**31 -1
+    X = [seed]; U = [X[0] / m]
+    for i in range(n-1):
+        X.append((a * X[i] + b) % m)
+        U.append(X[i+1] / m)
+    return U
+U = Unif(m, time.time())
+mean = np.mean(U)
+std = np.std(U)
+print ("Mean: ", mean)
+print ("Std: ", std)
+plt.hist(U)
+
+'''(b) Now use built-in functions of whatever software you are using to do
+       the same thing as in (a).'''
+
+U_auto = list(np.random.uniform(0.0, 1.0, m))
+mean_auto = np.mean(U_auto)
+std_auto = np.std(U_auto)
+print ("Mean_auto: ", mean_auto)
+print ("Std_auto: ", std_auto)
+plt.hist(U_auto)
+
+'''(c) Compare your findings in (a) and (b) and comment (be short but precise).'''
+
+stat_u = pd.DataFrame({
+    'Mean' : [mean, mean_auto],
+    'Std' : [std, std_auto]
+    },
+    index = ["LGM method", "Built-in fct"])
+print(stat_u)
+print("The expected mean and standard deviation of uniform distribution")
+print("~ U[0,1] are 0.5 and 0.289(= 1/sqrt(12)). The two results show")
+print("approximately the same results as expectations and also have close")
+print("features to each other. Thus, it can be concluded that LGM method")
+print("is well designed and operated.")
+
+
+'''2. Use the numbers of part (a) of question 1 to do the following:'''
+'''(a) Generate 10,000 random numbers with the following distribution:
+       X = −1 𝑤𝑖𝑡h probability 0.30
+           0 𝑤𝑖𝑡ℎ probability 0.35
+           1 𝑤𝑖𝑡ℎ probability 0.20
+           2 𝑤𝑖𝑡ℎ probability 0.15'''
+           
+m = 10000
+U = Unif(m, time.time())
+p = [0.3, 0.35, 0.2, 0.15]
+x = [-1, 0, 1, 2]
+X = []
+for i in range(m):
+    if U[i] < p[0]:
+        X.append(x[0])
+    elif U[i] < p[0] + p[1]:
+        X.append(x[1])
+    elif U[i] < p[0] + p[1] + p[2]:
+        X.append(x[2])
+    else:
+        X.append(x[3])
+
+'''(b) Draw the histogram and compute the empirical mean and the standard deviation
+       of the sequence of 10,000 numbers generated above in part (a).'''
+mean_G = np.mean(X)
+std_G = np.std(X)
+print ("Mean_G: ", mean_G)
+print ("Std_G: ", std_G)
+plt.hist(X)
+
+
+'''3. Use the idea of part (a) of Question 1 to do the following:'''
+'''(a) Generate 1,000 random numbers with Binomial distribution with n = 44 and
+       p = 0.64. (Hint: A random variable with Binomial distribution (n,p) is
+       a sum of n Bernoulli (p) distributed random variables, so you will need 
+       to generate 44,000 Uniformly distributed random numbers, to start with).'''
+
+m = 1000
+n = 44; p = 0.64
+U_tot = Unif(m*n, time.time())
+X = []
+for i in range(m):
+    U = U_tot[n*i:n*(i+1)]
+    temp = 0
+    for j in range(n):
+        if U[j] < p:
+            temp += 1
+    X.append(temp)
+    
+'''(b) Draw the histogram. Compute the probability that the random variable X that
+       has Binomial (44, 0.64) distribution, is at least 40: 𝑃(𝑋≥40). Use any
+       statistics textbook or online resources for the exact number for the above 
+       probability and compare it with your finding and comment.'''
+
+plt.hist(X, bins = 20)
+Pr = 0
+for k in range(40,44):
+    Pr += np.math.factorial(n) 
+    / (np.math.factorial(n-k) * np.math.factorial(k)) * p**k * (1-p)**(n-k)
+Pr_emp = len(list(np.array(X)[np.where(np.array(X)>40)]))/m
+print("Pr(X>=40) empirical: ", Pr_emp)
+print("Pr(X>=40) theoretical: ", Pr)
+print("No case with the value higher than or equal to 40 out of 1,000 repetition")
+print("was found. Statistical computation also shows that the probability")
+print("that the binomial result is higher than or equal to 40 is significantly")
+print("low, almost as low as zero. Thus, the empirical result is thought")
+print("to reflect statistic theoretical result.")
+
+'''4. Use the numbers of part (a) of question 1 to do the following:'''
+'''(a) Generate 10,000 Exponentially distributed random numbers with parameter 𝜆=1.5.'''
+
+m = 10000
+U = Unif(m, time.time())   
+l = 1.5
+X = list(-1 / l * np.log(np.array(U)))
+
+'''(b) Compute 𝑃(𝑋≥1) and 𝑃(𝑋≥4).'''
+
+p1 = len(np.array(X)[np.array(X)>=1])/m
+p4 = len(np.array(X)[np.array(X)>=4])/m
+print("𝑃(𝑋≥1): ", p1)
+print("𝑃(𝑋≥4): ", p4)
+
+'''(c) Compute the empirical mean and the standard deviation of the sequence of
+       10,000 numbers generated above in part (a). Draw the histogram by using 
+       the 10,000 numbers of part (a).'''
+       
+mean_exp = np.mean(X)
+std_exp = np.std(X)
+print ("Mean_exp: ", mean_exp)  #E[X] = 1/lambda = 0.67
+print ("Std_exp: ", std_exp)    #(E[X^2] - E[X]^2)^0.5 = 1/lambda = 0.67
+plt.hist(X, bins=100)
+
+'''5. Use the idea of part (a) of Question 1 to do the following:
+(a) Generate 5,000 Uniformly distributed random numbers on [0,1].'''
+
+m = 5000
+U1 = Unif(m,time.time())
+
+'''(b) Generate 5,000 Normally distributed random numbers with mean 0 and variance 1, 
+       by Box- Muller Method.'''
+
+m = 5000
+U1 = Unif(m, time.time())
+U2 = Unif(m, time.time())
+Z1_BM = list((-2 * np.log(np.array(U1)))**0.5 * np.cos(2*np.pi*np.array(U2)))
+Z2_BM = list((-2 * np.log(np.array(U1)))**0.5 * np.sin(2*np.pi*np.array(U2)))
+
+'''(c) Compute the empirical mean and the standard deviation of the sequence of 
+       numbers generated above of part (b).'''
+       
+stat_n_BM = pd.DataFrame({
+        'Mean' : [np.mean(Z1_BM), np.mean(Z2_BM)],
+        'Std' : [np.std(Z1_BM), np.std(Z2_BM)]
+        },
+        index = ["Z1_BM", "Z2_BM"])
+print(stat_n_BM)
+
+'''(d) Now use the Polar-Marsaglia method to do the same as in (b).
+       Note: Here you will not have the same number of random variables as in (b).'''
+       
+m = int(5000 * 4 / np.pi * 1.1) #for giving a buffer, 1.1 was multiplied
+U1 = Unif(m, time.time())
+U2 = Unif(m, time.time())
+V1 = 2 * np.array(U1) - 1
+V2 = 2 * np.array(U2) - 1
+W = V1**2 + V2**2
+Z1_PM = []; Z2_PM = [];
+i = 0
+while(len(Z1_PM) < 5000):
+    if W[i] <= 1:
+        Z1_PM.append(V1[i]*(-2 * np.log(W[i]) / W[i])**0.5)
+        Z2_PM.append(V2[i]*(-2 * np.log(W[i]) / W[i])**0.5)
+    i += 1
+
+'''(e) Compute the empirical mean and the standard deviation of the sequence of 
+       numbers generated above of part (d).'''
+       
+stat_n_PM = pd.DataFrame({
+    'Mean' : [np.mean(Z1_PM), np.mean(Z2_PM)],
+    'Std' : [np.std(Z1_PM), np.std(Z2_PM)]
+    },
+    index = ["Z1_PM", "Z2_PM"])
+print(stat_n_PM)
+
+'''(f) Now compare the efficiencies of the two above-algorithms, by comparing 
+       the execution times to generate 5,000 normally distributed random numbers 
+       by the two methods. Which one is more efficient? If you do not see a clear 
+       difference, you need to increase the number of generated realizations of 
+       random variables to 10,000, 20,000, etc.'''
+       
+def rnormBM(m):
+    U1 = Unif(m, time.time())
+    U2 = Unif(m, time.time())
+    Z1_BM = list((-2 * np.log(np.array(U1)))**0.5 * np.cos(2*np.pi*np.array(U2)))
+    return Z1_BM, Z2_BM
+
+def rnormPM(m):
+    n = int(m * 4 / np.pi * 1.1) #for giving a buffer, 1.1 was multiplied
+    U1 = Unif(n, time.time())
+    U2 = Unif(n, time.time())
+    V1 = 2 * np.array(U1) - 1
+    V2 = 2 * np.array(U2) - 1
+    W = V1**2 + V2**2
+    Z1_PM = []; Z2_PM = [];
+    i = 0
+    while(len(Z1_PM) < m):
+        if W[i] <= 1:
+            Z1_PM.append(V1[i]*(-2 * np.log(W[i]) / W[i])**0.5)
+        i += 1       
+    return Z1_PM
+Time = pd.DataFrame(index = ["Box-Muller", "Polar-Marsaglia"])
+for i in range(10):
+    m = 5000 * (i+1)
+    avg_time_bm = 0
+    avg_time_pm = 0
+    for j in range(100):
+        time_bm = time.time()
+        rnormBM(m)
+        avg_time_bm += (time.time() - time_bm)/5000
+        time_pm = time.time()
+        rnormPM(m)
+        avg_time_pm += (time.time() - time_pm)/5000
+    Time[m] = [avg_time_bm, avg_time_pm]
+print(Time)
+np.transpose(Time).plot()
+print("The result shows that Box-Muller method is faster than Polar-Marsaglia")
+print("method. The difference has exponentially increased as the number of")
+print("samples generated increases from 5,000 to 50,000.")
